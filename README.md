@@ -12,6 +12,10 @@ Copy the `JunkValue` folder into your Forever client's `Interface\AddOns` direct
 
 Open EllesmereUI's DataBars settings, choose the bar you want to configure, and set its block type to **Broker Plugin**. Select **Junk** (the source is named `JunkValue`) from the broker plugin list.
 
+## Options
+
+Right-click the broker block to toggle the EllesmereUI Junk Marker, a one-line merchant summary, or gold-only bar text when the total is over 1g. The same options are available with `/junkvalue marker`, `/junkvalue summary`, and `/junkvalue format`. Each option is off by default. The tooltip lists up to five highest-value junk stacks and gold earned from selling junk during the current session.
+
 ## Tests
 
 Run `luajit tests/run.lua` from this folder.
