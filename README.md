@@ -12,7 +12,11 @@ Copy the `JunkValue` folder into your Forever client's `Interface\AddOns` direct
 
 Open EllesmereUI's DataBars settings, choose the bar you want to configure, and set its block type to **Broker Plugin**. Select **Junk** (the source is named `JunkValue`) from the broker plugin list.
 
-Use `/junkvalue add <itemlink or id>` to count an item as junk, including non-gray items. `/junkvalue never <itemlink or id>` keeps an item out, even if gray; this takes precedence if both lists contain it. `/junkvalue remove <itemlink or id>` removes an item from both lists, `/junkvalue list` prints both lists, and `/junkvalue clear` starts a 10-second confirmation window; type `/junkvalue clear confirm` within that window to clear both lists. Alt+right-click bag items to toggle gray items on the keep list and non-gray items on the always-junk list. These lists are account-wide SavedVariables. Custom items without a vendor price are skipped. JunkValue never sells, picks up, or deletes items.
+## Options
+
+Open the JunkValue settings panel with `/junkvalue`, right-click the broker bar, or find **JunkValue** under Game Menu > Options > AddOns. The panel controls icon visibility and choice, merchant summary, gold-only display, and the EllesmereUI junk marker. It also shows both custom item lists, lets you add an item ID or shift-click an item link, and has per-item Remove buttons. Clear lists requires a second click within five seconds.
+
+Slash commands remain available: `/junkvalue add <itemlink or id>` counts an item as junk, including non-gray items; `/junkvalue never <itemlink or id>` keeps an item out, even if gray; `/junkvalue remove <itemlink or id>` removes it from both lists; `/junkvalue list` prints both lists; `/junkvalue clear` asks for `/junkvalue clear confirm` within 10 seconds. Alt+right-click bag items to toggle gray items on the keep list and non-gray items on the always-junk list. The lists are account-wide SavedVariables. Custom items without a vendor price are skipped. JunkValue never sells, picks up, or deletes items.
 
 ## Tests
 

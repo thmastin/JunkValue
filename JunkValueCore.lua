@@ -1,5 +1,24 @@
 local addonName, ns = ...
 
+function ns.MergeDefaults(database, defaults)
+    if type(database) ~= "table" then database = {} end
+    for key, value in pairs(defaults) do
+        if database[key] == nil then
+            database[key] = type(value) == "table" and {} or value
+        end
+    end
+    return database
+end
+
+function ns.ParseSlashCommand(message)
+    local command, argument = (message or ""):match("^%s*(%S+)%s*(.-)%s*$")
+    return command and command:lower() or "", argument ~= "" and argument or nil
+end
+
+function ns.ParseItemID(argument)
+    return tonumber(argument and (argument:match("item:(%d+)") or argument:match("^%s*(%d+)%s*$")))
+end
+
 function ns.ResolveIcon(showIcon, choice, icons)
     if not showIcon then return nil end
     return icons[choice] or icons.white
