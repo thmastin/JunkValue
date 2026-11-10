@@ -41,6 +41,10 @@ assert(ns.CanHookScript(supportedFrame, "OnTooltipSetItem", nil) == false, "miss
 assert(ns.CanHookScript(supportedFrame, "OnClick", function() end) == false, "unsupported frame script should not hook")
 assert(ns.CanHookScript(supportedFrame, "OnTooltipSetItem", function() end) == true, "supported frame script should hook")
 print("PASS guarded hook checks")
+assert(ns.IsClearConfirmed(105, 110), "clear confirmation should work before its deadline")
+assert(not ns.IsClearConfirmed(111, 110), "clear confirmation should expire")
+assert(not ns.IsClearConfirmed(105, 0), "clear confirmation should require a pending request")
+print("PASS clear confirmation timeout")
 
 -- Regression: the tooltip host passes its own frame/tooltip, which does not
 -- carry the broker object's value fields. Both views must use the same scan.
@@ -84,4 +88,4 @@ assert(ns.CalculateMerchantEarnings(80, 100, 20) == 80, "merchant sale earnings 
 assert(ns.CalculateMerchantEarnings(80, 100, 100) == 0, "non-junk sale was incorrectly attributed to junk")
 assert(ns.CalculateMerchantEarnings(0, 100, 20) == 0, "merchant spending was counted as earnings")
 print("PASS merchant earnings correlation")
-print(("%d tests passed"):format(#cases + #customCases + 4))
+print(("%d tests passed"):format(#cases + #customCases + 5))

@@ -14,6 +14,10 @@ function ns.CanHookScript(frame, scriptType, handler)
     return true
 end
 
+function ns.IsClearConfirmed(now, expiresAt)
+    return type(now) == "number" and type(expiresAt) == "number" and expiresAt > 0 and now <= expiresAt
+end
+
 function ns.IsJunk(slot, alwaysJunk, neverJunk)
     local id = slot.itemID
     return not (id and neverJunk and neverJunk[id]) and

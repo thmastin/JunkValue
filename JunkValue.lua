@@ -27,6 +27,7 @@ local merchantMoneyBefore = 0
 local merchantLastMoney = 0
 local merchantProceeds = 0
 local merchantCarryBefore = 0
+local clearConfirmUntil = 0
 
 local function formatMoney(copper)
     if GetCoinTextureString then return GetCoinTextureString(copper) end
@@ -145,6 +146,25 @@ local function scanBags()
 
 end
 
+local function requestClearConfirmation()
+    clearConfirmUntil = GetTime() + 10
+    printMessage("Type /junkvalue clear confirm within 10s to clear both custom lists.")
+end
+
+local function confirmClear()
+    local now = GetTime()
+    if not ns.IsClearConfirmed(now, clearConfirmUntil) then
+        clearConfirmUntil = 0
+        printMessage("Clear confirmation expired; type /junkvalue clear to try again.")
+        return
+    end
+    clearConfirmUntil = 0
+    wipe(JunkValueDB.alwaysJunk)
+    wipe(JunkValueDB.neverJunk)
+    scanBags()
+    printMessage("Custom lists cleared.")
+end
+
 local function setOption(key, value, description)
     JunkValueDB[key] = value
     if key == "countEUIJunk" or key == "showIcon" or key == "iconChoice" then
@@ -174,7 +194,7 @@ local function openOptionsMenu()
         for _ in pairs(JunkValueDB.neverJunk) do neverCount = neverCount + 1 end
         local options = {
             { label = "Custom lists: " .. alwaysCount .. " always / " .. neverCount .. " kept", title = true },
-            { label = "Clear custom lists...", toggle = function() if StaticPopup_Show then StaticPopup_Show("JUNKVALUE_CLEAR") end end },
+            { label = "Clear custom lists...", toggle = requestClearConfirmation },
             {
                 label = "Include EllesmereUI Junk Marker",
                 checked = JunkValueDB.countEUIJunk,
@@ -223,14 +243,6 @@ local function listEntries()
     printMessage("Always junk (" .. #a .. "): " .. (#a > 0 and table.concat(a, ", ") or "none"))
     printMessage("Never junk (" .. #n .. "): " .. (#n > 0 and table.concat(n, ", ") or "none"))
 end
-StaticPopupDialogs = StaticPopupDialogs or {}
-StaticPopupDialogs.JUNKVALUE_CLEAR = {
-    text = "Clear all JunkValue custom item lists?", button1 = YES, button2 = NO,
-    OnAccept = function()
-        wipe(JunkValueDB.alwaysJunk); wipe(JunkValueDB.neverJunk); scanBags(); printMessage("Custom lists cleared.")
-    end,
-    timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
-}
 SlashCmdList.JUNKVALUE = function(message)
     local option = (message or ""):lower():match("^%s*(.-)%s*$")
     local cmd, arg = option:match("^(%S+)%s+(.+)$")
@@ -248,7 +260,9 @@ SlashCmdList.JUNKVALUE = function(message)
         scanBags()
     elseif option == "list" then listEntries()
     elseif option == "clear" then
-        if StaticPopup_Show then StaticPopup_Show("JUNKVALUE_CLEAR") else printMessage("Confirmation popup unavailable.") end
+        requestClearConfirmation()
+    elseif option == "clear confirm" then
+        confirmClear()
     elseif option == "icon" then
         toggleOption("showIcon", "Icon")
     elseif option == "debug" then
