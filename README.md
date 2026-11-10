@@ -1,4 +1,4 @@
-﻿# JunkValue
+# JunkValue
 
 ![JunkValue](media/logo.png)
 
@@ -12,9 +12,11 @@ Copy the `JunkValue` folder into your Forever client's `Interface\AddOns` direct
 
 Open EllesmereUI's DataBars settings, choose the bar you want to configure, and set its block type to **Broker Plugin**. Select **Junk** (the source is named `JunkValue`) from the broker plugin list.
 
-## Options
 
-Right-click the broker block to toggle the EllesmereUI Junk Marker, a one-line merchant summary, or gold-only bar text when the total is over 1g. The same options are available with `/junkvalue marker`, `/junkvalue summary`, and `/junkvalue format`. Each option is off by default. The tooltip lists up to five highest-value junk stacks and gold earned from selling junk during the current session.
+
+
+
+Use `/junkvalue add <itemlink or id>` to count an item as junk, including non-gray items. `/junkvalue never <itemlink or id>` keeps an item out, even if gray; this takes precedence if both lists contain it. `/junkvalue remove <itemlink or id>` removes an item from both lists, `/junkvalue list` prints both lists, and `/junkvalue clear` opens a confirmation prompt. Alt+right-click bag items to toggle gray items on the keep list and non-gray items on the always-junk list. These lists are account-wide SavedVariables. Custom items without a vendor price are skipped. JunkValue never sells, picks up, or deletes items.
 
 ## Tests
 

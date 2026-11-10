@@ -2,6 +2,12 @@
 
 All notable changes to JunkValue are documented here.
 
+## [1.2.0] - 2026-11-10
+
+### Added
+- Add custom always-junk and never-junk lists, slash commands, bag Alt+right-click toggles, and item tooltip indicators.
+- Add selectable data bar icons and a Show icon option.
+
 ## [1.1.1] - 2026-11-10
 
 ### Changed
