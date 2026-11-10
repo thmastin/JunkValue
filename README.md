@@ -1,15 +1,15 @@
 ﻿# JunkValue
 
-Standalone LibDataBroker data source for the vendor value of sellable gray items in bags 0–4. It does not sell, pick up, or delete items.
+JunkValue is a standalone LibDataBroker source that displays the vendor value of sellable gray items in bags 0–4. It shows a compact money total, and its tooltip shows the total and number of stacks. It never sells, picks up, or deletes items.
 
-The optional `JunkValueDB.countEUIJunk` setting defaults to `false`. When enabled, items marked by `EUI_CategoryManager:IsJunk` are included, with the same value and price checks.
+## Install
 
-## Unit tests
+Copy the `JunkValue` folder into your Forever client's `Interface\AddOns` directory, so `JunkValue.toc` is at `Interface\AddOns\JunkValue\JunkValue.toc`. Restart or reload the client and enable JunkValue in the AddOns list.
 
-From this folder, run:
+## EllesmereUI DataBars
 
-```powershell
-luajit tests/run.lua
-```
+Open EllesmereUI's DataBars settings, choose the bar you want to configure, and set its block type to **Broker Plugin**. Select **Junk** (the source is named `JunkValue`) from the broker plugin list.
 
-The tests exercise the same summation helper loaded by the addon.
+## Tests
+
+Run `luajit tests/run.lua` from this folder.
