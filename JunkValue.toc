@@ -2,7 +2,7 @@
 ## Title: JunkValue
 ## Notes: Vendor value of sellable gray items in your bags
 ## Version: @project-version@
-## X-Curse-Project-ID: TBD
+## X-Curse-Project-ID: 1796345
 ## IconTexture: Interface\AddOns\JunkValue\media\icon
 ## SavedVariables: JunkValueDB
 

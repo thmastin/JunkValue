@@ -1,11 +1,10 @@
 ﻿package-as: JunkValue
 
 ignore:
-  - .git
-  - .github
+  - .git/
+  - .github/
   - .gitignore
   - .pkgmeta
   - README.md
-  - tests
-  - media/logo.png
-  - media/icon-64.png
+  - tests/
+  - media/*.png
