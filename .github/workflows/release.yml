@@ -12,6 +12,8 @@ jobs:
   package:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out source
+        uses: actions/checkout@v4
       - name: Package and release addon
         uses: BigWigsMods/packager@v2
         env:
