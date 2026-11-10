@@ -35,6 +35,12 @@ assert(ns.ResolveIcon(true, "white", iconMap) == "white-path", "default icon set
 assert(ns.ResolveIcon(true, "coin", iconMap) == "coin-path", "selected icon setting failed")
 assert(ns.ResolveIcon(false, "coin", iconMap) == nil, "hidden icon setting failed")
 print("PASS icon settings")
+local supportedFrame = { HasScript = function(_, script) return script == "OnTooltipSetItem" end }
+assert(ns.CanHookScript(nil, "OnTooltipSetItem", function() end) == false, "missing frame should not hook")
+assert(ns.CanHookScript(supportedFrame, "OnTooltipSetItem", nil) == false, "missing handler should not hook")
+assert(ns.CanHookScript(supportedFrame, "OnClick", function() end) == false, "unsupported frame script should not hook")
+assert(ns.CanHookScript(supportedFrame, "OnTooltipSetItem", function() end) == true, "supported frame script should hook")
+print("PASS guarded hook checks")
 
 -- Regression: the tooltip host passes its own frame/tooltip, which does not
 -- carry the broker object's value fields. Both views must use the same scan.
@@ -78,4 +84,4 @@ assert(ns.CalculateMerchantEarnings(80, 100, 20) == 80, "merchant sale earnings 
 assert(ns.CalculateMerchantEarnings(80, 100, 100) == 0, "non-junk sale was incorrectly attributed to junk")
 assert(ns.CalculateMerchantEarnings(0, 100, 20) == 0, "merchant spending was counted as earnings")
 print("PASS merchant earnings correlation")
-print(("%d tests passed"):format(#cases + #customCases + 3))
+print(("%d tests passed"):format(#cases + #customCases + 4))

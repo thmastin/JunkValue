@@ -251,6 +251,8 @@ SlashCmdList.JUNKVALUE = function(message)
         if StaticPopup_Show then StaticPopup_Show("JUNKVALUE_CLEAR") else printMessage("Confirmation popup unavailable.") end
     elseif option == "icon" then
         toggleOption("showIcon", "Icon")
+    elseif option == "debug" then
+        printMessage("Container click hook: " .. tostring(ns.hookStatus.container) .. "; item tooltip hook: " .. tostring(ns.hookStatus.tooltip) .. ".")
     elseif option == "marker" then
         toggleOption("countEUIJunk", "EllesmereUI Junk Marker")
     elseif option == "summary" then
@@ -258,7 +260,7 @@ SlashCmdList.JUNKVALUE = function(message)
     elseif option == "format" then
         toggleOption("goldOnlyOverOneGold", "Gold-only format")
     else
-        printMessage("Use add/remove/never <itemlink or id>, list, clear, icon, marker, summary, or format.")
+        printMessage("Use add/remove/never <itemlink or id>, list, clear, icon, debug, marker, summary, or format.")
     end
 end
 
@@ -277,8 +279,12 @@ local function handleBagModifiedClick(button, mouseButton)
     local _, _, quality = C_Item.GetItemInfo(info.itemID)
     if quality ~= nil then toggleCustomItem(info.itemID, quality) end
 end
-if hooksecurefunc and ContainerFrameItemButton_OnModifiedClick then
-    hooksecurefunc("ContainerFrameItemButton_OnModifiedClick", handleBagModifiedClick)
+ns.hookStatus = { container = "not installed", tooltip = "not installed" }
+if type(hooksecurefunc) == "function" and type(ContainerFrameItemButton_OnModifiedClick) == "function" and type(handleBagModifiedClick) == "function" then
+    local ok = pcall(hooksecurefunc, "ContainerFrameItemButton_OnModifiedClick", handleBagModifiedClick)
+    ns.hookStatus.container = ok and "installed" or "installation failed"
+else
+    ns.hookStatus.container = "handler unavailable"
 end
 
 function dataObject:OnClick(button)
@@ -297,8 +303,12 @@ local function appendItemListTooltip(tooltip)
     if JunkValueDB.neverJunk[id] then tooltip:AddLine("JunkValue: kept (custom)", 1, .8, .3)
     elseif JunkValueDB.alwaysJunk[id] then tooltip:AddLine("JunkValue: always junk (custom)", 1, .8, .3) end
 end
-if GameTooltip and GameTooltip.HookScript then
-    GameTooltip:HookScript("OnTooltipSetItem", appendItemListTooltip)
+local tooltipHookable, tooltipReason = ns.CanHookScript(GameTooltip, "OnTooltipSetItem", appendItemListTooltip)
+if tooltipHookable then
+    local ok = pcall(function() GameTooltip:HookScript("OnTooltipSetItem", appendItemListTooltip) end)
+    ns.hookStatus.tooltip = ok and "installed" or "installation failed"
+else
+    ns.hookStatus.tooltip = tooltipReason
 end
 
 infoFrame:SetScript("OnEvent", function(_, event)

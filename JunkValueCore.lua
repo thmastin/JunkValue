@@ -5,6 +5,15 @@ function ns.ResolveIcon(showIcon, choice, icons)
     return icons[choice] or icons.white
 end
 
+function ns.CanHookScript(frame, scriptType, handler)
+    if not frame then return false, "frame_missing" end
+    if type(handler) ~= "function" then return false, "handler_missing" end
+    if type(frame.HasScript) ~= "function" then return false, "has_script_unavailable" end
+    local ok, supported = pcall(frame.HasScript, frame, scriptType)
+    if not ok or supported ~= true then return false, "script_unsupported" end
+    return true
+end
+
 function ns.IsJunk(slot, alwaysJunk, neverJunk)
     local id = slot.itemID
     return not (id and neverJunk and neverJunk[id]) and
