@@ -14,7 +14,7 @@ Open EllesmereUI's DataBars settings, choose the bar you want to configure, and 
 
 ## Options
 
-Open the JunkValue settings panel with `/junkvalue`, right-click the broker bar, or find **JunkValue** under Game Menu > Options > AddOns. The panel controls icon visibility and choice, merchant summary, gold-only display, and the EllesmereUI junk marker. It also shows both custom item lists, lets you add an item ID or shift-click an item link, and has per-item Remove buttons. Clear lists requires a second click within five seconds.
+Open the JunkValue settings panel with `/junkvalue`, right-click the broker bar, or find **JunkValue** under Game Menu > Options > AddOns. The panel groups display and behavior settings, shows both custom item lists, and lets you add an item ID or shift-click an item link to **Add to Always** or **Add to Never**. Each list row has a Remove button. **Clear Lists** requires a second click within five seconds.
 
 Slash commands remain available: `/junkvalue add <itemlink or id>` counts an item as junk, including non-gray items; `/junkvalue never <itemlink or id>` keeps an item out, even if gray; `/junkvalue remove <itemlink or id>` removes it from both lists; `/junkvalue list` prints both lists; `/junkvalue clear` asks for `/junkvalue clear confirm` within 10 seconds. Alt+right-click bag items to toggle gray items on the keep list and non-gray items on the always-junk list. The lists are account-wide SavedVariables. Custom items without a vendor price are skipped. JunkValue never sells, picks up, or deletes items.
 
