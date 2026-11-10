@@ -1,8 +1,8 @@
-﻿# JunkValue
+# JunkValue
 
 ![JunkValue](media/logo.png)
 
-JunkValue is a standalone LibDataBroker source that displays the vendor value of sellable gray items in bags 0–4. It shows a compact money total, and its tooltip shows the total and number of stacks. It never sells, picks up, or deletes items.
+JunkValue is a standalone LibDataBroker source that displays the vendor value of sellable gray items in bags 0-4. It shows a compact money total, and its tooltip shows the total and number of stacks. It never sells, picks up, or deletes items.
 
 ## Install
 
@@ -14,7 +14,9 @@ Open EllesmereUI's DataBars settings, choose the bar you want to configure, and 
 
 ## Options
 
-Right-click the broker block to toggle the EllesmereUI Junk Marker, a one-line merchant summary, or gold-only bar text when the total is over 1g. The same options are available with `/junkvalue marker`, `/junkvalue summary`, and `/junkvalue format`. Each option is off by default. The tooltip lists up to five highest-value junk stacks and gold earned from selling junk during the current session.
+Open the native JunkValue settings panel with `/junkvalue`, right-click the broker bar, or find **JunkValue** under Game Menu > Options > AddOns. In Display, choose the white glyph, pouch, or coin icon and turn **Show icon** on or off. The panel also groups behavior settings, shows both custom item lists, and lets you add an item ID or shift-click an item link to **Add to Always** or **Add to Never**. Each list row has a Remove button. **Clear Lists** requires a second click within five seconds.
+
+Slash commands remain available: `/junkvalue add <itemlink or id>` counts an item as junk, including non-gray items; `/junkvalue never <itemlink or id>` keeps an item out, even if gray; `/junkvalue remove <itemlink or id>` removes it from both lists; `/junkvalue list` prints both lists; `/junkvalue clear` prompts you to type `/junkvalue clear confirm` within 10 seconds. Alt+right-click bag items in Blizzard or EllesmereUI bags to toggle gray items on the Never list and non-gray items on the Always list. The lists are account-wide SavedVariables. Custom items without a vendor price are skipped. JunkValue never sells, picks up, or deletes items.
 
 ## Tests
 

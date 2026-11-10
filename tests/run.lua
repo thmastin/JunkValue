@@ -18,6 +18,49 @@ for _, case in ipairs(cases) do
     print("PASS " .. case[1])
 end
 
+local customCases = {
+    { "always junk white", {{occupied=true,itemID=101,quality=1,sellPrice=25}}, {[101]=true}, {}, 25, 1 },
+    { "never excludes gray", {{occupied=true,itemID=102,quality=0,sellPrice=25}}, {}, {[102]=true}, 0, 0 },
+    { "never wins both", {{occupied=true,itemID=103,quality=0,sellPrice=25}}, {[103]=true}, {[103]=true}, 0, 0 },
+    { "always no sell price", {{occupied=true,itemID=104,quality=1,sellPrice=0}}, {[104]=true}, {}, 0, 0 },
+}
+for _, c in ipairs(customCases) do
+    local t, n, _, _, noPrice = ns.SumSellableSlots(c[2], c[3], c[4])
+    assert(t == c[5] and n == c[6], c[1] .. " failed")
+    if c[1] == "always no sell price" then assert(noPrice, "missing no-price tooltip marker") end
+    print("PASS " .. c[1])
+end
+local iconMap = {white="white-path", pouch="pouch-path", coin="coin-path"}
+assert(ns.ResolveIcon(true, "white", iconMap) == "white-path", "default icon setting failed")
+assert(ns.ResolveIcon(true, "coin", iconMap) == "coin-path", "selected icon setting failed")
+assert(ns.ResolveIcon(false, "coin", iconMap) == nil, "hidden icon setting failed")
+print("PASS icon settings")
+local v111DB = { countEUIJunk = false, merchantSummary = true, goldOnlyOverOneGold = false }
+local migratedDB = ns.MergeDefaults(v111DB, {
+    countEUIJunk = false, merchantSummary = false, goldOnlyOverOneGold = false,
+    alwaysJunk = {}, neverJunk = {}, showIcon = true, iconChoice = "white",
+})
+assert(migratedDB == v111DB, "migration should preserve the existing database table")
+assert(migratedDB.merchantSummary == true and migratedDB.countEUIJunk == false, "migration overwrote existing v1.1.1 values")
+assert(type(migratedDB.alwaysJunk) == "table" and type(migratedDB.neverJunk) == "table", "migration did not create custom lists")
+assert(migratedDB.showIcon == true and migratedDB.iconChoice == "white", "migration did not add icon defaults")
+print("PASS v1.1.1 database defaults migration")
+local command, argument = ns.ParseSlashCommand("  ADD |Hitem:12345:AbC|h[Mixed Case Item]|h  ")
+assert(command == "add" and argument == "|Hitem:12345:AbC|h[Mixed Case Item]|h", "slash parser changed argument case")
+assert(ns.ParseItemID(argument) == 12345, "item link ID parsing failed")
+assert(ns.ParseItemID(" 67890 ") == 67890, "bare item ID parsing failed")
+print("PASS case-preserving slash parsing")
+local supportedFrame = { HasScript = function(_, script) return script == "OnTooltipSetItem" end }
+assert(ns.CanHookScript(nil, "OnTooltipSetItem", function() end) == false, "missing frame should not hook")
+assert(ns.CanHookScript(supportedFrame, "OnTooltipSetItem", nil) == false, "missing handler should not hook")
+assert(ns.CanHookScript(supportedFrame, "OnClick", function() end) == false, "unsupported frame script should not hook")
+assert(ns.CanHookScript(supportedFrame, "OnTooltipSetItem", function() end) == true, "supported frame script should hook")
+print("PASS guarded hook checks")
+assert(ns.IsClearConfirmed(105, 110), "clear confirmation should work before its deadline")
+assert(not ns.IsClearConfirmed(111, 110), "clear confirmation should expire")
+assert(not ns.IsClearConfirmed(105, 0), "clear confirmation should require a pending request")
+print("PASS clear confirmation timeout")
+
 -- Regression: the tooltip host passes its own frame/tooltip, which does not
 -- carry the broker object's value fields. Both views must use the same scan.
 local manySlots = {}
@@ -60,4 +103,4 @@ assert(ns.CalculateMerchantEarnings(80, 100, 20) == 80, "merchant sale earnings 
 assert(ns.CalculateMerchantEarnings(80, 100, 100) == 0, "non-junk sale was incorrectly attributed to junk")
 assert(ns.CalculateMerchantEarnings(0, 100, 20) == 0, "merchant spending was counted as earnings")
 print("PASS merchant earnings correlation")
-print(("%d tests passed"):format(#cases + 2))
+print(("%d tests passed"):format(#cases + #customCases + 8))

@@ -2,6 +2,17 @@
 
 All notable changes to JunkValue are documented here.
 
+## [1.2.0] - 2026-11-10
+
+### Added
+- Add user-defined Always/Never junk lists, slash commands, and Alt+right-click toggling in Blizzard and EllesmereUI bags.
+- Add the native options panel, available by right-clicking the bar or using `/junkvalue`.
+- Add an icon picker with the white glyph, pouch, and coin, plus the Show icon toggle.
+
+### Fixed
+- Migrate existing users' settings and parse item links without changing their case.
+- Remove the StaticPopup clear confirmation to prevent popup system taint.
+
 ## [1.1.1] - 2026-11-10
 
 ### Changed
