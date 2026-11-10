@@ -19,3 +19,13 @@ Right-click the broker block to toggle the EllesmereUI Junk Marker, a one-line m
 ## Tests
 
 Run `luajit tests/run.lua` from this folder.
+
+## Versioning
+
+JunkValue uses Semantic Versioning (`MAJOR.MINOR.PATCH`):
+
+- **PATCH (1.1.x):** bug fixes and polish, with no new behavior. Small fixes are grouped into one patch release.
+- **MINOR (1.x.0):** new features that don't break existing setups.
+- **MAJOR (x.0.0):** breaking changes, such as renaming the data broker, resetting saved settings, or dropping a supported client.
+
+A release is tagged only after an in-game check. GitHub Actions builds and uploads releases to CurseForge on `v*` tags.

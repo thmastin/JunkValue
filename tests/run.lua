@@ -42,12 +42,20 @@ ns.WriteTooltip(tooltip, snapshot, 123, fakeMoney)
 assert(barText == "280c", "broker text did not use the expected scan total")
 assert(tooltip.rows[2].left == "Total" and tooltip.rows[2].right == barText, "tooltip total diverged from broker text")
 assert(tooltip.rows[3].left == "Stacks" and tooltip.rows[3].right == "7", "tooltip stack count diverged from scan")
-assert(tooltip.rows[4].left == "[Item 7] x 1 =" and tooltip.rows[4].right == "70c", "most valuable stack was not first")
+assert(tooltip.rows[4].left == "[Item 7]" and tooltip.rows[4].right == "70c", "single stack row should omit x1 and show value on the right")
+assert(not tooltip.rows[4].left:find("=", 1, true), "stack row should not contain an equals separator")
 assert(tooltip.rows[9].text == "+2 more", "tooltip omitted the additional stack count")
 assert(tooltip.rows[10].left == "Gold earned this session" and tooltip.rows[10].right == "123c", "session earnings row missing")
 assert(tooltip.rows[12].text == "Left-click: open bags", "left-click hint missing")
 assert(tooltip.rows[13].text == "Right-click: options", "right-click hint missing")
 print("PASS shared scan tooltip regression and stack details")
+local multiRows = ns.BuildTooltipRows({
+    total = 300,
+    stackCount = 1,
+    stacks = {{ itemLink = "[Stack]", stackCount = 3, value = 300 }},
+}, 0, fakeMoney)
+assert(multiRows[3].left == "[Stack] x3" and multiRows[3].right == "300c", "multi-item stack row format incorrect")
+print("PASS tooltip stack labels")
 assert(ns.CalculateMerchantEarnings(80, 100, 20) == 80, "merchant sale earnings were not correlated with junk value decrease")
 assert(ns.CalculateMerchantEarnings(80, 100, 100) == 0, "non-junk sale was incorrectly attributed to junk")
 assert(ns.CalculateMerchantEarnings(0, 100, 20) == 0, "merchant spending was counted as earnings")
