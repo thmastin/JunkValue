@@ -42,9 +42,11 @@ function ns.BuildTooltipRows(scanResult, sessionEarned, formatMoney, limit)
     for i = 1, topCount do
         local stack = scanResult.stacks[i]
         local link = stack.itemLink or ("[Item " .. tostring(stack.itemID or "?") .. "]")
+        local label = link
+        if stack.stackCount > 1 then label = link .. " x" .. tostring(stack.stackCount) end
         rows[#rows + 1] = {
             kind = "double",
-            left = link .. " x " .. tostring(stack.stackCount) .. " =",
+            left = label,
             right = formatMoney(stack.value),
         }
     end
