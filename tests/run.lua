@@ -9,6 +9,7 @@ local cases = {
     { "non-gray", {{ occupied=true, quality=1, sellPrice=7 }}, 0, 0, false },
     { "stack multiplier", {{ occupied=true, quality=0, sellPrice=7, stackCount=4 }}, 28, 1, false },
     { "pending/nil info", {{ occupied=true, quality=nil, sellPrice=nil }}, 0, 0, true },
+    { "marked junk", {{ occupied=true, quality=2, markedJunk=true, sellPrice=9 }}, 9, 1, false },
 }
 
 for _, case in ipairs(cases) do
@@ -16,4 +17,39 @@ for _, case in ipairs(cases) do
     assert(total == case[3] and stacks == case[4] and pending == case[5], case[1] .. " failed")
     print("PASS " .. case[1])
 end
-print(("%d tests passed"):format(#cases))
+
+-- Regression: the tooltip host passes its own frame/tooltip, which does not
+-- carry the broker object's value fields. Both views must use the same scan.
+local manySlots = {}
+for i = 1, 7 do
+    manySlots[i] = {
+        occupied = true,
+        itemID = i,
+        itemLink = "[Item " .. i .. "]",
+        quality = 0,
+        sellPrice = i * 10,
+        stackCount = 1,
+    }
+end
+local total, stackCount, pending, stacks = sumSellableSlots(manySlots)
+local snapshot = { total = total, stackCount = stackCount, pending = pending, stacks = stacks }
+local function fakeMoney(copper) return tostring(copper) .. "c" end
+local barText = fakeMoney(snapshot.total)
+local tooltip = { value = 0, stacks = 0, rows = {} }
+function tooltip:AddLine(text) self.rows[#self.rows + 1] = { text = text } end
+function tooltip:AddDoubleLine(left, right) self.rows[#self.rows + 1] = { left = left, right = right } end
+ns.WriteTooltip(tooltip, snapshot, 123, fakeMoney)
+assert(barText == "280c", "broker text did not use the expected scan total")
+assert(tooltip.rows[2].left == "Total" and tooltip.rows[2].right == barText, "tooltip total diverged from broker text")
+assert(tooltip.rows[3].left == "Stacks" and tooltip.rows[3].right == "7", "tooltip stack count diverged from scan")
+assert(tooltip.rows[4].left == "[Item 7] x 1 =" and tooltip.rows[4].right == "70c", "most valuable stack was not first")
+assert(tooltip.rows[9].text == "+2 more", "tooltip omitted the additional stack count")
+assert(tooltip.rows[10].left == "Gold earned this session" and tooltip.rows[10].right == "123c", "session earnings row missing")
+assert(tooltip.rows[12].text == "Left-click: open bags", "left-click hint missing")
+assert(tooltip.rows[13].text == "Right-click: options", "right-click hint missing")
+print("PASS shared scan tooltip regression and stack details")
+assert(ns.CalculateMerchantEarnings(80, 100, 20) == 80, "merchant sale earnings were not correlated with junk value decrease")
+assert(ns.CalculateMerchantEarnings(80, 100, 100) == 0, "non-junk sale was incorrectly attributed to junk")
+assert(ns.CalculateMerchantEarnings(0, 100, 20) == 0, "merchant spending was counted as earnings")
+print("PASS merchant earnings correlation")
+print(("%d tests passed"):format(#cases + 2))
