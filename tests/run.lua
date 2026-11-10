@@ -18,6 +18,24 @@ for _, case in ipairs(cases) do
     print("PASS " .. case[1])
 end
 
+local customCases = {
+    { "always junk white", {{occupied=true,itemID=101,quality=1,sellPrice=25}}, {[101]=true}, {}, 25, 1 },
+    { "never excludes gray", {{occupied=true,itemID=102,quality=0,sellPrice=25}}, {}, {[102]=true}, 0, 0 },
+    { "never wins both", {{occupied=true,itemID=103,quality=0,sellPrice=25}}, {[103]=true}, {[103]=true}, 0, 0 },
+    { "always no sell price", {{occupied=true,itemID=104,quality=1,sellPrice=0}}, {[104]=true}, {}, 0, 0 },
+}
+for _, c in ipairs(customCases) do
+    local t, n, _, _, noPrice = ns.SumSellableSlots(c[2], c[3], c[4])
+    assert(t == c[5] and n == c[6], c[1] .. " failed")
+    if c[1] == "always no sell price" then assert(noPrice, "missing no-price tooltip marker") end
+    print("PASS " .. c[1])
+end
+local iconMap = {white="white-path", pouch="pouch-path", coin="coin-path"}
+assert(ns.ResolveIcon(true, "white", iconMap) == "white-path", "default icon setting failed")
+assert(ns.ResolveIcon(true, "coin", iconMap) == "coin-path", "selected icon setting failed")
+assert(ns.ResolveIcon(false, "coin", iconMap) == nil, "hidden icon setting failed")
+print("PASS icon settings")
+
 -- Regression: the tooltip host passes its own frame/tooltip, which does not
 -- carry the broker object's value fields. Both views must use the same scan.
 local manySlots = {}
@@ -60,4 +78,4 @@ assert(ns.CalculateMerchantEarnings(80, 100, 20) == 80, "merchant sale earnings 
 assert(ns.CalculateMerchantEarnings(80, 100, 100) == 0, "non-junk sale was incorrectly attributed to junk")
 assert(ns.CalculateMerchantEarnings(0, 100, 20) == 0, "merchant spending was counted as earnings")
 print("PASS merchant earnings correlation")
-print(("%d tests passed"):format(#cases + 2))
+print(("%d tests passed"):format(#cases + #customCases + 3))

@@ -1,12 +1,23 @@
-﻿local addonName, ns = ...
+local addonName, ns = ...
 
-function ns.SumSellableSlots(slots)
-    local total, stackCount, pending, sellableStacks = 0, 0, false, {}
+function ns.ResolveIcon(showIcon, choice, icons)
+    if not showIcon then return nil end
+    return icons[choice] or icons.white
+end
+
+function ns.IsJunk(slot, alwaysJunk, neverJunk)
+    local id = slot.itemID
+    return not (id and neverJunk and neverJunk[id]) and
+        (slot.quality == 0 or (id and alwaysJunk and alwaysJunk[id]) or slot.markedJunk)
+end
+
+function ns.SumSellableSlots(slots, alwaysJunk, neverJunk)
+    local total, stackCount, pending, sellableStacks, noPriceCustom = 0, 0, false, {}, false
     for _, slot in ipairs(slots) do
         if slot.occupied then
             if slot.quality == nil or slot.sellPrice == nil then
                 pending = true
-            elseif (slot.quality == 0 or slot.markedJunk) and not slot.hasNoValue and slot.sellPrice > 0 then
+            elseif ns.IsJunk(slot, alwaysJunk, neverJunk) and not slot.hasNoValue and slot.sellPrice > 0 then
                 local count = slot.stackCount or 1
                 local stackValue = slot.sellPrice * count
                 total = total + stackValue
@@ -17,7 +28,10 @@ function ns.SumSellableSlots(slots)
                     stackCount = count,
                     unitPrice = slot.sellPrice,
                     value = stackValue,
+                    custom = (alwaysJunk and alwaysJunk[slot.itemID]) or (neverJunk and neverJunk[slot.itemID]) or false,
                 }
+            elseif slot.itemID and alwaysJunk and alwaysJunk[slot.itemID] and (not slot.sellPrice or slot.sellPrice <= 0 or slot.hasNoValue) then
+                noPriceCustom = true
             end
         end
     end
@@ -29,7 +43,7 @@ function ns.SumSellableSlots(slots)
         return a.value > b.value
     end)
 
-    return total, stackCount, pending, sellableStacks
+    return total, stackCount, pending, sellableStacks, noPriceCustom
 end
 
 function ns.BuildTooltipRows(scanResult, sessionEarned, formatMoney, limit)
@@ -37,6 +51,9 @@ function ns.BuildTooltipRows(scanResult, sessionEarned, formatMoney, limit)
         { kind = "double", left = "Total", right = formatMoney(scanResult.total) },
         { kind = "double", left = "Stacks", right = tostring(scanResult.stackCount) },
     }
+    if scanResult.noPriceCustom then
+        rows[#rows + 1] = { kind = "line", text = "Custom junk without a sell price is excluded." }
+    end
 
     local topCount = math.min(limit or 5, #scanResult.stacks)
     for i = 1, topCount do
@@ -44,6 +61,7 @@ function ns.BuildTooltipRows(scanResult, sessionEarned, formatMoney, limit)
         local link = stack.itemLink or ("[Item " .. tostring(stack.itemID or "?") .. "]")
         local label = link
         if stack.stackCount > 1 then label = link .. " x" .. tostring(stack.stackCount) end
+        if stack.custom then label = label .. " (custom)" end
         rows[#rows + 1] = {
             kind = "double",
             left = label,

@@ -6,11 +6,18 @@ local defaults = {
     countEUIJunk = false,
     merchantSummary = false,
     goldOnlyOverOneGold = false,
+    alwaysJunk = {},
+    neverJunk = {},
+    showIcon = true,
+    iconChoice = "white",
 }
 for key, default in pairs(defaults) do
     if type(JunkValueDB[key]) ~= "boolean" then
         JunkValueDB[key] = default
     end
+end
+for _, key in ipairs({"alwaysJunk", "neverJunk"}) do
+    if type(JunkValueDB[key]) ~= "table" then JunkValueDB[key] = {} end
 end
 
 local sessionEarned = 0
@@ -54,7 +61,7 @@ local dataObject = LDB:NewDataObject("JunkValue", {
     type = "data source",
     label = "Junk",
     text = "0c",
-    icon = "Interface\\AddOns\\JunkValue\\media\\icon",
+    icon = nil,
     OnTooltipShow = function(tooltip)
         -- Tooltip hosts pass their own tooltip/frame here. Always read the exact
         -- scan snapshot used to publish the broker text, never fields on that frame.
@@ -62,6 +69,16 @@ local dataObject = LDB:NewDataObject("JunkValue", {
     end,
 })
 ns.dataObject = dataObject
+local icons = {
+    white = "Interface\\AddOns\\JunkValue\\media\\icon-white",
+    pouch = "Interface\\AddOns\\JunkValue\\media\\icon",
+    coin = "Interface\\Icons\\INV_Misc_Coin_01",
+}
+local function updateIcon()
+    dataObject.icon = ns.ResolveIcon(JunkValueDB.showIcon, JunkValueDB.iconChoice, icons)
+end
+if not icons[JunkValueDB.iconChoice] then JunkValueDB.iconChoice = "white" end
+updateIcon()
 
 local infoFrame = CreateFrame("Frame")
 
@@ -114,8 +131,8 @@ local function scanBags()
         end
     end
 
-    local total, stackCount, pending, stacks = ns.SumSellableSlots(slots)
-    scanResult = { total = total, stackCount = stackCount, pending = pending, stacks = stacks }
+    local total, stackCount, pending, stacks, noPriceCustom = ns.SumSellableSlots(slots, JunkValueDB.alwaysJunk, JunkValueDB.neverJunk)
+    scanResult = { total = total, stackCount = stackCount, pending = pending, stacks = stacks, noPriceCustom = noPriceCustom }
     if pending then
         infoFrame:RegisterEvent("GET_ITEM_INFO_RECEIVED")
     else
@@ -130,7 +147,10 @@ end
 
 local function setOption(key, value, description)
     JunkValueDB[key] = value
-    if key == "countEUIJunk" then scanBags() else dataObject.text = formatDisplay(scanResult.total) end
+    if key == "countEUIJunk" or key == "showIcon" or key == "iconChoice" then
+        if key ~= "countEUIJunk" then updateIcon() end
+        scanBags()
+    else dataObject.text = formatDisplay(scanResult.total) end
     printMessage(description)
 end
 
@@ -149,7 +169,12 @@ local function openOptionsMenu()
         ns.optionsMenu = CreateFrame("Frame", "JunkValueOptionsMenu", UIParent, "UIDropDownMenuTemplate")
     end
     UIDropDownMenu_Initialize(ns.optionsMenu, function(_, level)
+        local alwaysCount, neverCount = 0, 0
+        for _ in pairs(JunkValueDB.alwaysJunk) do alwaysCount = alwaysCount + 1 end
+        for _ in pairs(JunkValueDB.neverJunk) do neverCount = neverCount + 1 end
         local options = {
+            { label = "Custom lists: " .. alwaysCount .. " always / " .. neverCount .. " kept", title = true },
+            { label = "Clear custom lists...", toggle = function() if StaticPopup_Show then StaticPopup_Show("JUNKVALUE_CLEAR") end end },
             {
                 label = "Include EllesmereUI Junk Marker",
                 checked = JunkValueDB.countEUIJunk,
@@ -165,13 +190,19 @@ local function openOptionsMenu()
                 checked = JunkValueDB.goldOnlyOverOneGold,
                 toggle = function() toggleOption("goldOnlyOverOneGold", "Gold-only format") end,
             },
+            { label = "Show icon", checked = JunkValueDB.showIcon, toggle = function() toggleOption("showIcon", "Icon") end },
+            { label = "Icon: white glyph", checked = JunkValueDB.iconChoice == "white", toggle = function() setOption("iconChoice", "white", "White icon selected.") end },
+            { label = "Icon: pouch", checked = JunkValueDB.iconChoice == "pouch", toggle = function() setOption("iconChoice", "pouch", "Pouch icon selected.") end },
+            { label = "Icon: coin", checked = JunkValueDB.iconChoice == "coin", toggle = function() setOption("iconChoice", "coin", "Coin icon selected.") end },
         }
         for _, option in ipairs(options) do
             local menuOption = option
             local info = UIDropDownMenu_CreateInfo()
             info.text = menuOption.label
             info.checked = menuOption.checked
-            info.isNotRadio = true
+            info.isTitle = menuOption.title
+            info.disabled = menuOption.title
+            info.isNotRadio = not menuOption.label:match("^Icon:")
             info.keepShownOnClick = true
             info.func = menuOption.toggle
             UIDropDownMenu_AddButton(info, level)
@@ -181,17 +212,73 @@ local function openOptionsMenu()
 end
 
 SLASH_JUNKVALUE1 = "/junkvalue"
+local function resolveItemID(arg)
+    return tonumber(arg and (arg:match("item:(%d+)") or arg:match("^%s*(%d+)%s*$")))
+end
+local function listEntries()
+    local a, n = {}, {}
+    for id in pairs(JunkValueDB.alwaysJunk) do a[#a + 1] = tostring(id) end
+    for id in pairs(JunkValueDB.neverJunk) do n[#n + 1] = tostring(id) end
+    table.sort(a); table.sort(n)
+    printMessage("Always junk (" .. #a .. "): " .. (#a > 0 and table.concat(a, ", ") or "none"))
+    printMessage("Never junk (" .. #n .. "): " .. (#n > 0 and table.concat(n, ", ") or "none"))
+end
+StaticPopupDialogs = StaticPopupDialogs or {}
+StaticPopupDialogs.JUNKVALUE_CLEAR = {
+    text = "Clear all JunkValue custom item lists?", button1 = YES, button2 = NO,
+    OnAccept = function()
+        wipe(JunkValueDB.alwaysJunk); wipe(JunkValueDB.neverJunk); scanBags(); printMessage("Custom lists cleared.")
+    end,
+    timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
+}
 SlashCmdList.JUNKVALUE = function(message)
     local option = (message or ""):lower():match("^%s*(.-)%s*$")
-    if option == "marker" then
+    local cmd, arg = option:match("^(%S+)%s+(.+)$")
+    local itemID = resolveItemID(arg)
+    if cmd == "add" or cmd == "never" or cmd == "remove" then
+        if not itemID then printMessage("Provide an item link or numeric item ID."); return end
+        if cmd == "remove" then
+            JunkValueDB.alwaysJunk[itemID], JunkValueDB.neverJunk[itemID] = nil, nil
+            printMessage("Removed " .. itemID .. " from custom lists.")
+        elseif cmd == "add" then
+            JunkValueDB.alwaysJunk[itemID] = true; printMessage("Always junk: " .. itemID .. ".")
+        else
+            JunkValueDB.neverJunk[itemID] = true; printMessage("Never junk: " .. itemID .. ".")
+        end
+        scanBags()
+    elseif option == "list" then listEntries()
+    elseif option == "clear" then
+        if StaticPopup_Show then StaticPopup_Show("JUNKVALUE_CLEAR") else printMessage("Confirmation popup unavailable.") end
+    elseif option == "icon" then
+        toggleOption("showIcon", "Icon")
+    elseif option == "marker" then
         toggleOption("countEUIJunk", "EllesmereUI Junk Marker")
     elseif option == "summary" then
         toggleOption("merchantSummary", "Merchant summary")
     elseif option == "format" then
         toggleOption("goldOnlyOverOneGold", "Gold-only format")
     else
-        printMessage("Use /junkvalue marker, /junkvalue summary, or /junkvalue format to toggle options.")
+        printMessage("Use add/remove/never <itemlink or id>, list, clear, icon, marker, summary, or format.")
     end
+end
+
+local function toggleCustomItem(itemID, quality)
+    local list = quality == 0 and JunkValueDB.neverJunk or JunkValueDB.alwaysJunk
+    if list[itemID] then list[itemID] = nil; printMessage("Removed " .. itemID .. " from custom list.")
+    else list[itemID] = true; printMessage((quality == 0 and "Kept " or "Always junk ") .. itemID .. ".") end
+    scanBags()
+end
+local function handleBagModifiedClick(button, mouseButton)
+    if mouseButton ~= "RightButton" or not IsAltKeyDown or not IsAltKeyDown() then return end
+    local bag, slot = button:GetParent() and button:GetParent():GetID(), button:GetID()
+    if not bag or not slot then return end
+    local info = C_Container.GetContainerItemInfo(bag, slot)
+    if not info or not info.itemID then return end
+    local _, _, quality = C_Item.GetItemInfo(info.itemID)
+    if quality ~= nil then toggleCustomItem(info.itemID, quality) end
+end
+if hooksecurefunc and ContainerFrameItemButton_OnModifiedClick then
+    hooksecurefunc("ContainerFrameItemButton_OnModifiedClick", handleBagModifiedClick)
 end
 
 function dataObject:OnClick(button)
@@ -200,6 +287,18 @@ function dataObject:OnClick(button)
     elseif button == "RightButton" then
         openOptionsMenu()
     end
+end
+
+local function appendItemListTooltip(tooltip)
+    if not tooltip or not tooltip.GetItem then return end
+    local _, link = tooltip:GetItem()
+    local id = tonumber(link and (link:match("item:(%d+)") or link:match("^%s*(%d+)%s*$")))
+    if not id then return end
+    if JunkValueDB.neverJunk[id] then tooltip:AddLine("JunkValue: kept (custom)", 1, .8, .3)
+    elseif JunkValueDB.alwaysJunk[id] then tooltip:AddLine("JunkValue: always junk (custom)", 1, .8, .3) end
+end
+if GameTooltip and GameTooltip.HookScript then
+    GameTooltip:HookScript("OnTooltipSetItem", appendItemListTooltip)
 end
 
 infoFrame:SetScript("OnEvent", function(_, event)
