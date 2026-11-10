@@ -1,4 +1,4 @@
-﻿local addonName, ns = ...
+\xef\xbb\xbflocal addonName, ns = ...
 
 local LDB = LibStub:GetLibrary("LibDataBroker-1.1")
 JunkValueDB = JunkValueDB or { countEUIJunk = false }
@@ -6,6 +6,7 @@ local dataObject = LDB:NewDataObject("JunkValue", {
     type = "data source",
     label = "Junk",
     text = "0c",
+    icon = "Interface\\AddOns\\JunkValue\\media\\icon",
 })
 ns.dataObject = dataObject
 

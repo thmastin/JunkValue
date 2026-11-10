@@ -7,3 +7,5 @@ ignore:
   - .pkgmeta
   - README.md
   - tests
+  - media/logo.png
+  - media/icon-64.png

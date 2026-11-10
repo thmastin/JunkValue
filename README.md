@@ -1,5 +1,7 @@
 ﻿# JunkValue
 
+![JunkValue](media/logo.png)
+
 JunkValue is a standalone LibDataBroker source that displays the vendor value of sellable gray items in bags 0–4. It shows a compact money total, and its tooltip shows the total and number of stacks. It never sells, picks up, or deletes items.
 
 ## Install

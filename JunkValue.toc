@@ -3,6 +3,7 @@
 ## Notes: Vendor value of sellable gray items in your bags
 ## Version: @project-version@
 ## X-Curse-Project-ID: TBD
+## IconTexture: Interface\AddOns\JunkValue\media\icon
 ## SavedVariables: JunkValueDB
 
 Libs\LibStub\LibStub.lua
