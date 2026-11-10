@@ -1,0 +1,11 @@
+﻿## Interface: 16001
+## Title: JunkValue
+## Notes: Vendor value of sellable gray items in your bags
+## Version: 1.0.0
+## SavedVariables: JunkValueDB
+
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+JunkValueCore.lua
+JunkValue.lua
