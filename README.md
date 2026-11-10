@@ -14,9 +14,9 @@ Open EllesmereUI's DataBars settings, choose the bar you want to configure, and 
 
 ## Options
 
-Open the JunkValue settings panel with `/junkvalue`, right-click the broker bar, or find **JunkValue** under Game Menu > Options > AddOns. The panel groups display and behavior settings, shows both custom item lists, and lets you add an item ID or shift-click an item link to **Add to Always** or **Add to Never**. Each list row has a Remove button. **Clear Lists** requires a second click within five seconds.
+Open the native JunkValue settings panel with `/junkvalue`, right-click the broker bar, or find **JunkValue** under Game Menu > Options > AddOns. In Display, choose the white glyph, pouch, or coin icon and turn **Show icon** on or off. The panel also groups behavior settings, shows both custom item lists, and lets you add an item ID or shift-click an item link to **Add to Always** or **Add to Never**. Each list row has a Remove button. **Clear Lists** requires a second click within five seconds.
 
-Slash commands remain available: `/junkvalue add <itemlink or id>` counts an item as junk, including non-gray items; `/junkvalue never <itemlink or id>` keeps an item out, even if gray; `/junkvalue remove <itemlink or id>` removes it from both lists; `/junkvalue list` prints both lists; `/junkvalue clear` asks for `/junkvalue clear confirm` within 10 seconds. Alt+right-click bag items to toggle gray items on the keep list and non-gray items on the always-junk list. The lists are account-wide SavedVariables. Custom items without a vendor price are skipped. JunkValue never sells, picks up, or deletes items.
+Slash commands remain available: `/junkvalue add <itemlink or id>` counts an item as junk, including non-gray items; `/junkvalue never <itemlink or id>` keeps an item out, even if gray; `/junkvalue remove <itemlink or id>` removes it from both lists; `/junkvalue list` prints both lists; `/junkvalue clear` prompts you to type `/junkvalue clear confirm` within 10 seconds. Alt+right-click bag items in Blizzard or EllesmereUI bags to toggle gray items on the Never list and non-gray items on the Always list. The lists are account-wide SavedVariables. Custom items without a vendor price are skipped. JunkValue never sells, picks up, or deletes items.
 
 ## Tests
 
