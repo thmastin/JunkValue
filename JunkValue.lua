@@ -220,25 +220,28 @@ local function createSettingsPanel()
     if settingsPanel then return end
     local panel = CreateFrame("Frame", nil, UIParent)
     panel.name = "JunkValue"
-    panel:SetSize(620, 640)
+    panel:SetSize(660, 660)
     settingsPanel = panel
 
-    local function goldHeader(text, anchor)
-        local header = panel:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+    local panelWidth = 660
+    local function sectionHeader(text, anchor, first)
+        local header = panel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
         header:SetTextColor(0.90, 0.72, 0.32)
         header:SetText(text)
-        header:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -10)
-        return header
+        if first then header:SetPoint("TOPLEFT", panel, "TOPLEFT", 16, -14)
+        else header:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", -8, -16) end
+        local divider = panel:CreateTexture(nil, "ARTWORK")
+        divider:SetColorTexture(0.68, 0.52, 0.25, 0.65)
+        divider:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -4)
+        divider:SetSize(panelWidth - 32, 1)
+        return header, divider
     end
 
-    local displayHeader = panel:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-    displayHeader:SetTextColor(0.90, 0.72, 0.32)
-    displayHeader:SetText("Display")
-    displayHeader:SetPoint("TOPLEFT", panel, "TOPLEFT", 16, -12)
+    local displayHeader, displayDivider = sectionHeader("Display", nil, true)
 
     local showIcon = CreateFrame("CheckButton", nil, panel, "UICheckButtonTemplate")
     showIcon:SetSize(26, 26)
-    showIcon:SetPoint("TOPLEFT", displayHeader, "BOTTOMLEFT", -6, -4)
+    showIcon:SetPoint("TOPLEFT", displayDivider, "BOTTOMLEFT", 8, -8)
     local showIconText = showIcon:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     showIconText:SetPoint("LEFT", showIcon, "RIGHT", 4, 0)
     showIconText:SetText("Show icon")
@@ -247,15 +250,15 @@ local function createSettingsPanel()
 
     local iconLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     iconLabel:SetText("Icon")
-    iconLabel:SetPoint("TOPLEFT", showIcon, "BOTTOMLEFT", 6, -4)
+    iconLabel:SetPoint("TOPLEFT", showIcon, "BOTTOMLEFT", 0, -8)
     local choices = {}
     local previousChoice
     for index, entry in ipairs({ { "white", "White glyph" }, { "pouch", "Pouch" }, { "coin", "Coin" } }) do
         local choice, label = entry[1], entry[2]
         local radio = CreateFrame("CheckButton", nil, panel, "UIRadioButtonTemplate")
         radio:SetSize(24, 24)
-        if index == 1 then radio:SetPoint("TOPLEFT", iconLabel, "BOTTOMLEFT", -4, -3)
-        else radio:SetPoint("LEFT", previousChoice, "RIGHT", 15, 0) end
+        if index == 1 then radio:SetPoint("TOPLEFT", iconLabel, "BOTTOMLEFT", 0, -4)
+        else radio:SetPoint("LEFT", previousChoice, "RIGHT", 18, 0) end
         local text = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
         text:SetPoint("LEFT", radio, "RIGHT", 1, 0)
         text:SetText(label)
@@ -269,12 +272,13 @@ local function createSettingsPanel()
         previousChoice = preview
     end
 
-    local behaviorHeader = goldHeader("Behavior", choices[1])
-    local previousBehavior = behaviorHeader
+    local behaviorHeader, behaviorDivider = sectionHeader("Behavior", choices[1])
+    local previousBehavior = behaviorDivider
     local function addBehaviorCheck(label, key)
         local check = CreateFrame("CheckButton", nil, panel, "UICheckButtonTemplate")
         check:SetSize(26, 26)
-        check:SetPoint("TOPLEFT", previousBehavior, "BOTTOMLEFT", -6, -3)
+        if previousBehavior == behaviorDivider then check:SetPoint("TOPLEFT", previousBehavior, "BOTTOMLEFT", 8, -8)
+        else check:SetPoint("TOPLEFT", previousBehavior, "BOTTOMLEFT", 0, -8) end
         local text = check:CreateFontString(nil, "ARTWORK", "GameFontNormal")
         text:SetPoint("LEFT", check, "RIGHT", 4, 0)
         text:SetText(label)
@@ -286,105 +290,158 @@ local function createSettingsPanel()
     addBehaviorCheck("Gold-only display over 1g", "goldOnlyOverOneGold")
     addBehaviorCheck("Include EllesmereUI Junk Marker", "countEUIJunk")
 
-    local customHeader = goldHeader("Custom junk", previousBehavior)
+    local customHeader, customDivider = sectionHeader("Custom junk", previousBehavior)
     local itemInput = CreateFrame("EditBox", nil, panel, "InputBoxTemplate")
-    itemInput:SetSize(250, 26)
+    itemInput:SetSize(260, 26)
     itemInput:SetAutoFocus(false)
-    itemInput:SetPoint("TOPLEFT", customHeader, "BOTTOMLEFT", 0, -5)
+    itemInput:SetPoint("TOPLEFT", customDivider, "BOTTOMLEFT", 8, -8)
     itemInput:SetTextInsets(6, 6, 0, 0)
     itemInput:SetHyperlinksEnabled(true)
     itemInput:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
     panel.itemInput = itemInput
 
-    local help = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-    help:SetPoint("TOPLEFT", itemInput, "BOTTOMLEFT", 0, -3)
-    help:SetText("Paste an item link or ID. Shift-click an item while this box is focused.")
-
     local addAlways = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-    addAlways:SetSize(128, 24)
-    addAlways:SetPoint("TOPLEFT", help, "BOTTOMLEFT", 0, -5)
+    addAlways:SetSize(112, 24)
+    addAlways:SetPoint("LEFT", itemInput, "RIGHT", 10, 0)
     addAlways:SetText("Add to Always")
     local addNever = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-    addNever:SetSize(128, 24)
+    addNever:SetSize(112, 24)
     addNever:SetPoint("LEFT", addAlways, "RIGHT", 8, 0)
     addNever:SetText("Add to Never")
 
-    local listScroll = CreateFrame("ScrollFrame", nil, panel, "UIPanelScrollFrameTemplate")
-    listScroll:SetPoint("TOPLEFT", addAlways, "BOTTOMLEFT", 0, -7)
-    listScroll:SetSize(570, 170)
-    local listContent = CreateFrame("Frame", nil, listScroll)
-    listContent:SetSize(535, 170)
-    listScroll:SetScrollChild(listContent)
-    panel.listScroll = listScroll
+    local help = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    help:SetTextColor(0.68, 0.68, 0.68)
+    help:SetPoint("TOPLEFT", itemInput, "BOTTOMLEFT", 0, -4)
+    help:SetText("Paste an item link or ID. Shift-click an item while this box is focused.")
 
-    local listRows = {}
-    local listDirty = true
-    local function addListEntry(itemID, list, anchor)
-        local row = CreateFrame("Frame", nil, listContent)
-        row:SetSize(520, 26)
-        row:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -2)
+    local columnWidth, listHeight = 298, 200
+    local function createListColumn(title, list, xOffset)
+        local header = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+        header:SetText(title)
+        header:SetPoint("TOPLEFT", help, "BOTTOMLEFT", xOffset, -12)
+
+        local box = CreateFrame("Frame", nil, panel, BackdropTemplateMixin and "BackdropTemplate" or nil)
+        box:SetSize(columnWidth, listHeight)
+        box:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -6)
+        if box.SetBackdrop then
+            box:SetBackdrop({
+                bgFile = "Interface\\Buttons\\WHITE8X8",
+                edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+                tile = false,
+                edgeSize = 14,
+                insets = { left = 3, right = 3, top = 3, bottom = 3 },
+            })
+            box:SetBackdropColor(0.035, 0.035, 0.035, 0.95)
+            box:SetBackdropBorderColor(0.42, 0.42, 0.42, 0.9)
+        end
+
+        local scroll = CreateFrame("ScrollFrame", nil, box)
+        scroll:SetPoint("TOPLEFT", box, "TOPLEFT", 8, -8)
+        scroll:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -22, 8)
+        local content = CreateFrame("Frame", nil, scroll)
+        content:SetSize(columnWidth - 32, listHeight - 16)
+        scroll:SetScrollChild(content)
+
+        local scrollbar = CreateFrame("Slider", nil, box, BackdropTemplateMixin and "BackdropTemplate" or nil)
+        scrollbar:SetOrientation("VERTICAL")
+        scrollbar:SetWidth(8)
+        scrollbar:SetPoint("TOPRIGHT", box, "TOPRIGHT", -7, -8)
+        scrollbar:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -7, 8)
+        if scrollbar.SetBackdrop then
+            scrollbar:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8X8" })
+            scrollbar:SetBackdropColor(0.11, 0.11, 0.11, 0.8)
+        end
+        scrollbar:SetMinMaxValues(0, 0)
+        scrollbar:SetValue(0)
+        scrollbar:SetValueStep(22)
+        local thumb = scrollbar:CreateTexture(nil, "ARTWORK")
+        thumb:SetTexture("Interface\\Buttons\\WHITE8X8")
+        thumb:SetVertexColor(0.62, 0.62, 0.62, 0.95)
+        thumb:SetSize(8, 28)
+        scrollbar:SetThumbTexture(thumb)
+        scrollbar:Hide()
+        scrollbar:SetScript("OnValueChanged", function(_, value) scroll:SetVerticalScroll(value) end)
+        scroll:EnableMouseWheel(true)
+        scroll:SetScript("OnMouseWheel", function(_, delta)
+            local low, high = scrollbar:GetMinMaxValues()
+            scrollbar:SetValue(math.max(low, math.min(high, scrollbar:GetValue() - delta * 22)))
+        end)
+
+        local column = { header = header, box = box, scroll = scroll, content = content, scrollbar = scrollbar, rows = {}, empty = nil, list = list }
+        panel[title == "Always junk" and "alwaysList" or "neverList"] = column
+        return column
+    end
+
+    local alwaysColumn = createListColumn("Always junk", JunkValueDB.alwaysJunk, 0)
+    local neverColumn = createListColumn("Never junk", JunkValueDB.neverJunk, columnWidth + 16)
+
+    local function updateColumnScroll(column, contentHeight)
+        local viewportHeight = column.scroll:GetHeight()
+        local range = math.max(0, contentHeight - viewportHeight)
+        column.scrollbar:SetMinMaxValues(0, range)
+        column.scrollbar:SetShown(range > 0)
+        column.scrollbar:SetValue(math.min(column.scroll:GetVerticalScroll() or 0, range))
+        if range == 0 then column.scroll:SetVerticalScroll(0) end
+    end
+
+    local function addListEntry(column, itemID, anchor)
+        local row = CreateFrame("Frame", nil, column.content)
+        row:SetSize(columnWidth - 32, 22)
+        if anchor then row:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, 0)
+        else row:SetPoint("TOPLEFT", column.content, "TOPLEFT", 0, 0) end
         local icon = row:CreateTexture(nil, "ARTWORK")
-        icon:SetSize(21, 21)
+        icon:SetSize(18, 18)
         icon:SetPoint("LEFT", row, "LEFT", 0, 0)
         local name, texture = itemNameAndIcon(itemID)
         icon:SetTexture(texture)
-        local label = row:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-        label:SetPoint("LEFT", icon, "RIGHT", 6, 0)
-        label:SetWidth(390)
-        label:SetJustifyH("LEFT")
-        label:SetText(name .. " (" .. tostring(itemID) .. ")")
         local remove = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
-        remove:SetSize(78, 22)
-        remove:SetPoint("RIGHT", row, "RIGHT", -3, 0)
+        remove:SetSize(56, 18)
+        remove:SetPoint("RIGHT", row, "RIGHT", -1, 0)
         remove:SetText("Remove")
+        local label = row:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+        label:SetPoint("LEFT", icon, "RIGHT", 5, 0)
+        label:SetPoint("RIGHT", remove, "LEFT", -5, 0)
+        label:SetJustifyH("LEFT")
+        label:SetWordWrap(false)
+        label:SetText(name .. " (" .. tostring(itemID) .. ")")
         remove:SetScript("OnClick", function()
-            list[itemID] = nil
+            column.list[itemID] = nil
             scanBags()
             listDirty = true
             refreshSettingsPanel()
         end)
-        listRows[#listRows + 1] = row
+        column.rows[#column.rows + 1] = row
         return row
     end
 
-    local function rebuildLists()
-        for _, row in ipairs(listRows) do row:Hide() end
-        listRows = {}
-        local anchor = listContent
-        local yOffset = -4
-        local contentHeight = 8
-        for _, section in ipairs({ { "Always junk", JunkValueDB.alwaysJunk }, { "Never junk", JunkValueDB.neverJunk } }) do
-            local header = listContent:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-            header:SetTextColor(0.90, 0.72, 0.32)
-            header:SetText(section[1])
-            header:SetPoint("TOPLEFT", anchor, anchor == listContent and "TOPLEFT" or "BOTTOMLEFT", 0, yOffset)
-            listRows[#listRows + 1] = header
-            anchor = header
-            yOffset = -3
-            contentHeight = contentHeight + 20
-            local ids = {}
-            for id, enabled in pairs(section[2]) do if enabled then ids[#ids + 1] = tonumber(id) or id end end
-            table.sort(ids, function(a, b) return tonumber(a) and tonumber(b) and tonumber(a) < tonumber(b) or tostring(a) < tostring(b) end)
-            if #ids == 0 then
-                local empty = listContent:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-                empty:SetText("No items")
-                empty:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 6, -3)
-                listRows[#listRows + 1] = empty
-                anchor = empty
-                contentHeight = contentHeight + 21
-            else
-                for _, id in ipairs(ids) do
-                    anchor = addListEntry(id, section[2], anchor)
-                    contentHeight = contentHeight + 28
-                end
+    local listDirty = true
+    local function rebuildColumn(column)
+        for _, row in ipairs(column.rows) do row:Hide() end
+        column.rows = {}
+        if column.empty then column.empty:Hide() end
+        local ids = {}
+        for id, enabled in pairs(column.list) do if enabled then ids[#ids + 1] = tonumber(id) or id end end
+        table.sort(ids, function(a, b) return tonumber(a) and tonumber(b) and tonumber(a) < tonumber(b) or tostring(a) < tostring(b) end)
+        if #ids == 0 then
+            if not column.empty then
+                column.empty = column.content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+                column.empty:SetTextColor(0.62, 0.62, 0.62)
+                column.empty:SetText("No items")
             end
+            column.empty:ClearAllPoints()
+            column.empty:SetPoint("CENTER", column.scroll, "CENTER", 0, 0)
+            column.empty:Show()
+        else
+            local previous
+            for _, id in ipairs(ids) do previous = addListEntry(column, id, previous) end
         end
-        listContent:SetHeight(math.max(170, contentHeight))
-        listDirty = false
+        local contentHeight = math.max(column.scroll:GetHeight(), #ids * 22)
+        column.content:SetSize(columnWidth - 32, contentHeight)
+        updateColumnScroll(column, contentHeight)
     end
 
     local tip = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-    tip:SetPoint("TOPLEFT", listScroll, "BOTTOMLEFT", 0, -4)
+    tip:SetPoint("TOPLEFT", alwaysColumn.box, "BOTTOMLEFT", 0, -5)
     tip:SetText("Tip: Alt+right-click an item in your bags to toggle it.")
     panel.altTip = tip
     updateAltTip = function()
@@ -452,7 +509,11 @@ local function createSettingsPanel()
         panel.merchantSummaryCheck:SetChecked(not not JunkValueDB.merchantSummary)
         panel.goldOnlyOverOneGoldCheck:SetChecked(not not JunkValueDB.goldOnlyOverOneGold)
         panel.countEUIJunkCheck:SetChecked(not not JunkValueDB.countEUIJunk)
-        if listDirty then rebuildLists() end
+        if listDirty then
+            rebuildColumn(alwaysColumn)
+            rebuildColumn(neverColumn)
+            listDirty = false
+        end
         updateAltTip()
     end
 
